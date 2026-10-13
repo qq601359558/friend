@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 伴侣 - 视频互动终端</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+        }
+
+        body {
+            background-color: #0f1117;
+            color: #ffffff;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* 顶部状态栏 */
+        header {
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.03);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+        }
+
+        .avatar-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #10b981;
+            box-shadow: 0 0 10px #10b981;
+        }
+
+        .title {
+            font-size: 16px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .status-badge {
+            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.08);
+            color: #94a3b8;
+        }
+
+        /* 主体交互区域 */
+        main {
+            flex: 1;
+            display: flex;
+            position: relative;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        /* AI 女友主视频/立绘卡片 */
+        .companion-viewport {
+            width: 100%;
+            max-width: 900px;
+            height: 100%;
+            max-height: 640px;
+            background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+            border-radius: 24px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        @keyframes breath {
+            0% { transform: scale(1.0) translateY(0px); }
+            50% { transform: scale(1.02) translateY(-4px); }
+            100% { transform: scale(1.0) translateY(0px); }
+        }
+
+        @keyframes talkingMotion {
+            0% { transform: scale(1.02) translateY(-2px); }
+            25% { transform: scale(1.035) translateY(-5px) rotate(0.4deg); }
+            50% { transform: scale(1.02) translateY(-2px); }
+            75% { transform: scale(1.04) translateY(-4px) rotate(-0.4deg); }
+            100% { transform: scale(1.02) translateY(-2px); }
+        }
+
+        .avatar-visual {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+            animation: breath 5s ease-in-out infinite;
+            transform-origin: center center;
+        }
+
+        .speaking-glow .avatar-visual {
+            animation: talkingMotion 1.4s ease-in-out infinite !important;
+        }
+
+        /* 呼吸微动效 */
+        .speaking-glow {
+            box-shadow: inset 0 0 60px rgba(236, 72, 153, 0.4), 0 0 30px rgba(236, 72, 153, 0.3);
+            border-color: rgba(236, 72, 153, 0.5);
+        }
+
+        /* 浮动字幕与说话状态 */
+        .subtitle-box {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 85%;
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 16px 24px;
+            border-radius: 16px;
+            text-align: center;
+            font-size: 16px;
+            line-height: 1.6;
+            color: #f8fafc;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+        }
+
+        /* 用户右上角画中画摄像头 (双向互看) */
+        .pip-camera {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            width: 180px;
+            height: 135px;
+            border-radius: 14px;
+            background: #000;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            overflow: hidden;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+            z-index: 10;
+        }
+
+        .pip-camera video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1); /* 镜像翻转 */
+        }
+
+        .pip-camera-label {
+            position: absolute;
+            bottom: 6px;
+            left: 8px;
+            font-size: 10px;
+            background: rgba(0,0,0,0.6);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #cbd5e1;
+        }
+
+        /* 底部控制台 */
+        footer {
+            padding: 18px 24px 28px;
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            background: rgba(15, 17, 23, 0.9);
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .input-bar {
+            width: 100%;
+            max-width: 680px;
+            display: flex;
+            gap: 10px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 14px 20px;
+            border-radius: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            font-size: 15px;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        input[type="text"]:focus {
+            border-color: #ec4899;
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 15px rgba(236, 72, 153, 0.2);
+        }
+
+        .btn {
+            padding: 0 24px;
+            border-radius: 30px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(236, 72, 153, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(236, 72, 153, 0.4);
+        }
+
+        .btn-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.08);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-icon:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .btn-icon.active {
+            background: rgba(236, 72, 153, 0.2);
+            border-color: #ec4899;
+            color: #ec4899;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="avatar-info">
+            <div class="status-dot"></div>
+            <div class="title" id="aiName">星晚</div>
+            <div class="status-badge" id="aiStatus">在线中</div>
+        </div>
+        <div>
+            <span class="status-badge" id="modeBadge">轻量调试模式</span>
+        </div>
+    </header>
+
+    <main>
+        <div class="companion-viewport" id="viewportCard">
+            <!-- 视觉立绘/视频画面 -->
+            <img class="avatar-visual" id="avatarImage" 
+                 src="/assets/default_avatar.jpg" 
+                 onerror="this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=1200&q=80'" 
+                 alt="AI Companion" />
+            
+            <!-- 用户前置摄像头画中画 -->
+            <div class="pip-camera">
+                <video id="userCam" autoplay playsinline muted></video>
+                <div class="pip-camera-label">我的摄像头</div>
+            </div>
+
+            <!-- 字幕与当前话语 -->
+            <div class="subtitle-box" id="subtitleBox">
+                （点击下方输入框发送消息，或者开启麦克风和我说话~）
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="input-bar">
+            <button class="btn btn-icon" id="toggleCamBtn" title="开关摄像头">📹</button>
+            <input type="text" id="chatInput" placeholder="想和我说点什么？按回车发送..." />
+            <button class="btn btn-primary" id="sendBtn">发送</button>
+        </div>
+    </footer>
+
+    <!-- 音频播放控件 -->
+    <audio id="audioPlayer" autoplay></audio>
+
+    <script>
+        const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsUrl = `${wsProtocol}//${window.location.host}/ws/chat`;
+        let ws;
+
+        const aiStatus = document.getElementById('aiStatus');
+        const subtitleBox = document.getElementById('subtitleBox');
+        const chatInput = document.getElementById('chatInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const audioPlayer = document.getElementById('audioPlayer');
+        const viewportCard = document.getElementById('viewportCard');
+        const userCam = document.getElementById('userCam');
+        const toggleCamBtn = document.getElementById('toggleCamBtn');
+
+        // 防止浏览器缓存旧头像
+        avatarImage.src = '/assets/default_avatar.jpg?t=' + new Date().getTime();
+
+        let cameraStream = null;
+
+        // 初始化 WebSocket 连接
+        function connectWebSocket() {
+            ws = new WebSocket(wsUrl);
+
+            ws.onopen = () => {
+                aiStatus.innerText = '在线中';
+                aiStatus.style.color = '#10b981';
+            };
+
+            ws.onmessage = (event) => {
+                const msg = JSON.parse(event.data);
+
+                if (msg.type === 'state') {
+                    if (msg.data === 'thinking') {
+                        aiStatus.innerText = '正在思考...';
+                        subtitleBox.innerText = '正在想怎么回复你...';
+                    } else if (msg.data === 'speaking') {
+                        aiStatus.innerText = '说话中';
+                        viewportCard.classList.add('speaking-glow');
+                    } else if (msg.data === 'idle') {
+                        aiStatus.innerText = '在线中';
+                        viewportCard.classList.remove('speaking-glow');
+                    }
+                } else if (msg.type === 'text_delta') {
+                    // 流式增量字幕
+                    if (subtitleBox.innerText === '正在想怎么回复你...') {
+                        subtitleBox.innerText = '';
+                    }
+                    subtitleBox.innerText += msg.delta;
+                } else if (msg.type === 'audio') {
+                    // 播放返回的声音
+                    const audioBase64 = msg.audio_base64;
+                    if (audioBase64) {
+                        audioPlayer.src = `data:audio/mp3;base64,${audioBase64}`;
+                        audioPlayer.play().catch(e => console.log('自动播放需要用户交互:', e));
+                    } else if (msg.text && 'speechSynthesis' in window) {
+                        // 优雅降级：浏览器原生语音朗读（0延迟、无网络依赖）
+                        const utter = new SpeechSynthesisUtterance(msg.text);
+                        utter.lang = 'zh-CN';
+                        utter.rate = 1.05;
+                        window.speechSynthesis.speak(utter);
+                    }
+                }
+            };
+
+            ws.onclose = () => {
+                aiStatus.innerText = '已离线 (重连中...)';
+                aiStatus.style.color = '#ef4444';
+                setTimeout(connectWebSocket, 3000);
+            };
+        }
+
+        // 发送消息
+        function sendMessage() {
+            const text = chatInput.value.trim();
+            if (!text || !ws || ws.readyState !== WebSocket.OPEN) return;
+
+            subtitleBox.innerText = `你：${text}`;
+            ws.send(JSON.stringify({
+                type: 'user_message',
+                text: text
+            }));
+            chatInput.value = '';
+        }
+
+        sendBtn.addEventListener('click', sendMessage);
+        chatInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        // 摄像头开关
+        toggleCamBtn.addEventListener('click', async () => {
+            if (cameraStream) {
+                cameraStream.getTracks().forEach(track => track.stop());
+                userCam.srcObject = null;
+                cameraStream = null;
+                toggleCamBtn.classList.remove('active');
+            } else {
+                try {
+                    cameraStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+                    userCam.srcObject = cameraStream;
+                    toggleCamBtn.classList.add('active');
+                } catch (err) {
+                    alert('无法访问摄像头: ' + err.message);
+                }
+            }
+        });
+
+        connectWebSocket();
+
+        // 视线与微表情跟随：鼠标移动时产生微小的视线与头部倾斜
+        let isSpeaking = false;
+        window.addEventListener('mousemove', (e) => {
+            if (viewportCard.classList.contains('speaking-glow')) return;
+            const cx = window.innerWidth / 2;
+            const cy = window.innerHeight / 2;
+            const dx = (e.clientX - cx) / cx;
+            const dy = (e.clientY - cy) / cy;
+            avatarImage.style.transform = `scale(1.02) translate(${dx * 8}px, ${dy * 8}px) rotateY(${dx * 3}deg) rotateX(${-dy * 3}deg)`;
+        });
+    </script>
+</body>
+</html>

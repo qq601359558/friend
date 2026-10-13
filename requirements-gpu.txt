@@ -1,0 +1,9 @@
+# 5060 Ti 专属 GPU 重载依赖（回家部署时安装）
+-r requirements.txt
+torch
+torchvision
+torchaudio
+onnxruntime-gpu
+opencv-python
+ffmpeg-python
+liveportrait
