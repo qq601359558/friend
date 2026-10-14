@@ -1,9 +1,29 @@
-# 5060 Ti 专属 GPU 重载依赖（回家部署时安装）
+# ==============================================================================
+# RTX 5060 Ti (8GB VRAM / Blackwell sm_120) 专属 GPU 依赖清单
+# ==============================================================================
+# 注意：RTX 5060 Ti 采用 Blackwell 架构，请务必先安装支持 CUDA 12.8+ 的 PyTorch：
+# pip install --pre torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/cu128
+# ==============================================================================
+
 -r requirements.txt
-torch
-torchvision
-torchaudio
-onnxruntime-gpu
-opencv-python
-ffmpeg-python
-liveportrait
+
+# 视觉与神经渲染核心依赖 (FasterLivePortrait + MuseTalk / JoyVASA 推理底座)
+onnxruntime-gpu>=1.19.0
+opencv-python>=4.9.0
+ffmpeg-python>=0.2.0
+numpy>=1.26.0
+scipy>=1.12.0
+pillow>=10.2.0
+tqdm>=4.66.0
+pyyaml>=6.0.1
+huggingface-hub>=0.23.0
+
+# 全双工 WebRTC 音视频同轨流与本地语音感知 (MIT / Apache-2.0 宽松协议)
+aiortc>=1.9.0
+av>=12.0.0
+funasr>=1.1.0
+silero-vad>=5.1
+
+# 长期记忆图谱可选扩展 (Apache-2.0 协议，系统已内置零依赖本地持久化记忆引擎，安装后可自动增强)
+mem0ai>=0.1.20
+qdrant-client>=1.11.0

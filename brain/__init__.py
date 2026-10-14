@@ -1,3 +1,3 @@
-from .agent import BrainAgent
+from .agent import BrainAgent, MemoryManager
 
-__all__ = ["BrainAgent"]
+__all__ = ["BrainAgent", "MemoryManager"]

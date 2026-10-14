@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI 伴侣 - 视频互动终端</title>
+    <title>AI 伴侣 - 工业级全双工视频互动终端 v3.1</title>
     <style>
         * {
             margin: 0;
@@ -13,7 +13,7 @@
         }
 
         body {
-            background-color: #0f1117;
+            background-color: #0b0e14;
             color: #ffffff;
             height: 100vh;
             display: flex;
@@ -21,7 +21,6 @@
             overflow: hidden;
         }
 
-        /* 顶部状态栏 */
         header {
             padding: 12px 24px;
             display: flex;
@@ -29,7 +28,8 @@
             align-items: center;
             background: rgba(255, 255, 255, 0.03);
             border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(12px);
+            z-index: 30;
         }
 
         .avatar-info {
@@ -44,6 +44,7 @@
             border-radius: 50%;
             background-color: #10b981;
             box-shadow: 0 0 10px #10b981;
+            transition: all 0.3s;
         }
 
         .title {
@@ -52,30 +53,67 @@
             letter-spacing: 0.5px;
         }
 
-        .status-badge {
-            font-size: 12px;
-            padding: 4px 10px;
-            border-radius: 12px;
-            background: rgba(255, 255, 255, 0.08);
-            color: #94a3b8;
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
-        /* 主体交互区域 */
+        .status-badge {
+            font-size: 12px;
+            padding: 5px 12px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.07);
+            color: #cbd5e1;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.25s;
+        }
+
+        .intimacy-badge {
+            font-size: 12px;
+            padding: 5px 14px;
+            border-radius: 14px;
+            background: rgba(236, 72, 153, 0.15);
+            border: 1px solid rgba(236, 72, 153, 0.38);
+            color: #f472b6;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .intimacy-badge:hover {
+            background: rgba(236, 72, 153, 0.26);
+            transform: translateY(-1px);
+        }
+
+        .action-pill {
+            font-size: 12px;
+            padding: 5px 12px;
+            border-radius: 14px;
+            background: rgba(139, 92, 246, 0.16);
+            border: 1px solid rgba(139, 92, 246, 0.4);
+            color: #c4b5fd;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .action-pill:hover {
+            background: rgba(139, 92, 246, 0.28);
+        }
+
         main {
             flex: 1;
             display: flex;
             position: relative;
             justify-content: center;
             align-items: center;
-            padding: 20px;
+            padding: 18px;
         }
 
-        /* AI 女友主视频/立绘卡片 */
         .companion-viewport {
             width: 100%;
-            max-width: 900px;
+            max-width: 920px;
             height: 100%;
-            max-height: 640px;
+            max-height: 650px;
             background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
             border-radius: 24px;
             position: relative;
@@ -84,7 +122,9 @@
             justify-content: center;
             align-items: center;
             border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55);
+            transition: box-shadow 0.18s ease, border-color 0.18s ease;
+            perspective: 1000px;
         }
 
         @keyframes breath {
@@ -95,42 +135,76 @@
 
         @keyframes talkingMotion {
             0% { transform: scale(1.02) translateY(-2px); }
-            25% { transform: scale(1.035) translateY(-5px) rotate(0.4deg); }
+            25% { transform: scale(1.034) translateY(-5px) rotate(0.35deg); }
             50% { transform: scale(1.02) translateY(-2px); }
-            75% { transform: scale(1.04) translateY(-4px) rotate(-0.4deg); }
+            75% { transform: scale(1.038) translateY(-4px) rotate(-0.35deg); }
             100% { transform: scale(1.02) translateY(-2px); }
+        }
+
+        .avatar-motion-wrapper {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            animation: breath 5s ease-in-out infinite;
+            transform-origin: center center;
+        }
+
+        .speaking-glow .avatar-motion-wrapper {
+            animation: talkingMotion 1.25s ease-in-out infinite;
         }
 
         .avatar-visual {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
-            animation: breath 5s ease-in-out infinite;
+            transition: transform 0.14s cubic-bezier(0.2, 0.8, 0.2, 1);
             transform-origin: center center;
+            will-change: transform;
         }
 
-        .speaking-glow .avatar-visual {
-            animation: talkingMotion 1.4s ease-in-out infinite !important;
-        }
-
-        /* 呼吸微动效 */
         .speaking-glow {
-            box-shadow: inset 0 0 60px rgba(236, 72, 153, 0.4), 0 0 30px rgba(236, 72, 153, 0.3);
-            border-color: rgba(236, 72, 153, 0.5);
+            box-shadow: inset 0 0 60px rgba(236, 72, 153, 0.45), 0 0 35px rgba(236, 72, 153, 0.35);
+            border-color: rgba(236, 72, 153, 0.65);
         }
 
-        /* 浮动字幕与说话状态 */
-        .subtitle-box {
+        .wave-bars {
             position: absolute;
-            bottom: 30px;
+            bottom: 102px;
             left: 50%;
             transform: translateX(-50%);
-            width: 85%;
-            background: rgba(15, 23, 42, 0.75);
-            backdrop-filter: blur(12px);
+            display: flex;
+            align-items: flex-end;
+            gap: 4px;
+            height: 24px;
+            opacity: 0;
+            transition: opacity 0.25s;
+            z-index: 15;
+        }
+
+        .speaking-glow .wave-bars {
+            opacity: 1;
+        }
+
+        .wave-bar {
+            width: 4px;
+            height: 6px;
+            border-radius: 3px;
+            background: linear-gradient(180deg, #f472b6 0%, #a855f7 100%);
+            transition: height 0.06s ease;
+        }
+
+        .subtitle-box {
+            position: absolute;
+            bottom: 26px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 86%;
+            background: rgba(15, 23, 42, 0.80);
+            backdrop-filter: blur(14px);
             border: 1px solid rgba(255, 255, 255, 0.15);
-            padding: 16px 24px;
+            padding: 15px 24px;
             border-radius: 16px;
             text-align: center;
             font-size: 16px;
@@ -140,60 +214,193 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.45);
+            z-index: 14;
         }
 
-        /* 用户右上角画中画摄像头 (双向互看) */
         .pip-camera {
             position: absolute;
-            top: 24px;
-            right: 24px;
-            width: 180px;
-            height: 135px;
+            top: 22px;
+            right: 22px;
+            width: 192px;
+            height: 144px;
             border-radius: 14px;
-            background: #000;
-            border: 2px solid rgba(255, 255, 255, 0.2);
+            background: #090d16;
+            border: 2px solid rgba(255, 255, 255, 0.16);
             overflow: hidden;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.6);
-            z-index: 10;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.65);
+            z-index: 12;
+            transition: border-color 0.3s;
+        }
+
+        .pip-camera.cam-active {
+            border-color: rgba(16, 185, 129, 0.75);
         }
 
         .pip-camera video {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            transform: scaleX(-1); /* 镜像翻转 */
+            transform: scaleX(-1);
         }
 
         .pip-camera-label {
             position: absolute;
             bottom: 6px;
             left: 8px;
-            font-size: 10px;
-            background: rgba(0,0,0,0.6);
-            padding: 2px 6px;
-            border-radius: 4px;
+            right: 8px;
+            font-size: 11px;
+            background: rgba(0, 0, 0, 0.68);
+            padding: 3px 8px;
+            border-radius: 6px;
             color: #cbd5e1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        /* 底部控制台 */
+        /* 侧边记忆手账与音色/形象工作台抽屉 */
+        .memory-drawer {
+            position: fixed;
+            top: 58px;
+            right: -400px;
+            width: 380px;
+            height: calc(100vh - 58px);
+            background: rgba(15, 23, 42, 0.96);
+            backdrop-filter: blur(18px);
+            border-left: 1px solid rgba(255, 255, 255, 0.12);
+            padding: 18px 20px;
+            z-index: 40;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            transition: right 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+            box-shadow: -10px 0 30px rgba(0, 0, 0, 0.55);
+        }
+
+        .memory-drawer.open {
+            right: 0;
+        }
+
+        .drawer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .drawer-header h3 {
+            font-size: 15px;
+            font-weight: 600;
+            color: #f472b6;
+        }
+
+        .close-drawer-btn {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        .drawer-section-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: #cbd5e1;
+            margin-top: 2px;
+        }
+
+        .drawer-select {
+            width: 100%;
+            padding: 8px 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.06);
+            color: #fff;
+            font-size: 12px;
+            outline: none;
+        }
+
+        .drawer-select option {
+            background: #0f172a;
+            color: #fff;
+        }
+
+        .memory-list {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding-right: 4px;
+        }
+
+        .memory-item {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            padding: 9px 12px;
+            font-size: 13px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .memory-item-meta {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 3px;
+        }
+
+        .del-fact-btn {
+            background: none;
+            border: none;
+            color: #ef4444;
+            cursor: pointer;
+            font-size: 13px;
+            opacity: 0.7;
+        }
+
+        .del-fact-btn:hover {
+            opacity: 1;
+        }
+
+        .drawer-add-box {
+            display: flex;
+            gap: 8px;
+        }
+
+        .drawer-add-box input {
+            flex: 1;
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.06);
+            color: #fff;
+            font-size: 12px;
+        }
+
         footer {
-            padding: 18px 24px 28px;
+            padding: 16px 24px 24px;
             display: flex;
             justify-content: center;
             gap: 12px;
-            background: rgba(15, 17, 23, 0.9);
+            background: rgba(15, 17, 23, 0.94);
             border-top: 1px solid rgba(255, 255, 255, 0.06);
+            z-index: 25;
         }
 
         .input-bar {
             width: 100%;
-            max-width: 680px;
+            max-width: 780px;
             display: flex;
+            align-items: center;
             gap: 10px;
         }
 
-        input[type="text"] {
+        input[type="text"]#chatInput {
             flex: 1;
             padding: 14px 20px;
             border-radius: 30px;
@@ -205,23 +412,26 @@
             transition: all 0.2s;
         }
 
-        input[type="text"]:focus {
+        input[type="text"]#chatInput:focus {
             border-color: #ec4899;
             background: rgba(255, 255, 255, 0.08);
             box-shadow: 0 0 15px rgba(236, 72, 153, 0.2);
         }
 
         .btn {
-            padding: 0 24px;
+            padding: 0 22px;
+            height: 46px;
             border-radius: 30px;
             border: none;
             cursor: pointer;
             font-weight: 500;
-            font-size: 15px;
+            font-size: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: all 0.2s;
+            user-select: none;
+            white-space: nowrap;
         }
 
         .btn-primary {
@@ -235,13 +445,27 @@
             box-shadow: 0 6px 20px rgba(236, 72, 153, 0.4);
         }
 
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.45);
+            padding: 0 16px;
+            display: none;
+        }
+
+        .btn-danger.visible {
+            display: flex;
+        }
+
         .btn-icon {
-            width: 48px;
-            height: 48px;
+            width: 46px;
+            height: 46px;
+            padding: 0;
             border-radius: 50%;
             background: rgba(255, 255, 255, 0.08);
             color: white;
             border: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 18px;
         }
 
         .btn-icon:hover {
@@ -249,9 +473,10 @@
         }
 
         .btn-icon.active {
-            background: rgba(236, 72, 153, 0.2);
+            background: rgba(236, 72, 153, 0.24);
             border-color: #ec4899;
             color: #ec4899;
+            box-shadow: 0 0 14px rgba(236, 72, 153, 0.38);
         }
     </style>
 </head>
@@ -259,73 +484,384 @@
 
     <header>
         <div class="avatar-info">
-            <div class="status-dot"></div>
+            <div class="status-dot" id="statusDot"></div>
             <div class="title" id="aiName">星晚</div>
-            <div class="status-badge" id="aiStatus">在线中</div>
+            <div class="status-badge" id="aiStatus">正在连接...</div>
         </div>
-        <div>
+        <div class="header-right">
+            <button class="action-pill" id="proactiveBtn" title="让她结合当前画面与时间主动关心你">👋 让她找话题</button>
+            <span class="intimacy-badge" id="intimacyBadge" title="点击打开记忆手账、音色克隆与形象设置">💕 亲密度 65 · 温柔愉悦 · 记忆 0 条 ⚙️</span>
             <span class="status-badge" id="modeBadge">轻量调试模式</span>
         </div>
     </header>
 
+    <!-- 侧边共同记忆手账、CosyVoice 声音克隆与写实头像热更新抽屉 -->
+    <aside class="memory-drawer" id="memoryDrawer">
+        <div class="drawer-header">
+            <h3>💕 伴侣记忆手账与音色/形象设置</h3>
+            <button class="close-drawer-btn" id="closeDrawerBtn">✕</button>
+        </div>
+        <div style="font-size: 11px; color: #94a3b8; line-height: 1.5;" id="drawerDriverInfo">
+            渲染引擎：检测中...
+        </div>
+
+        <div class="drawer-section-title">🎵 伴侣声音引擎与音色克隆 (CosyVoice2 / Edge)</div>
+        <select class="drawer-select" id="voiceSelect"></select>
+
+        <div class="drawer-section-title">🖼️ 在线更换伴侣写实照片 (自动重算 90 帧眨眼循环)</div>
+        <div class="drawer-add-box">
+            <input type="file" id="avatarUploadInput" accept="image/*" style="font-size: 11px; padding: 5px;" />
+        </div>
+
+        <div class="drawer-section-title">📝 共同记忆手账 (自动提炼 + 手动备忘)</div>
+        <div class="drawer-add-box">
+            <input type="text" id="newFactInput" placeholder="添加纪念日/偏好（如：忌口香菜）" />
+            <button class="btn btn-primary" id="addFactBtn" style="height: 34px; padding: 0 14px; font-size: 12px;">记录</button>
+        </div>
+        <div class="memory-list" id="memoryList"></div>
+    </aside>
+
     <main>
         <div class="companion-viewport" id="viewportCard">
-            <!-- 视觉立绘/视频画面 -->
-            <img class="avatar-visual" id="avatarImage" 
-                 src="/assets/default_avatar.jpg" 
-                 onerror="this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=1200&q=80'" 
-                 alt="AI Companion" />
-            
-            <!-- 用户前置摄像头画中画 -->
-            <div class="pip-camera">
-                <video id="userCam" autoplay playsinline muted></video>
-                <div class="pip-camera-label">我的摄像头</div>
+            <div class="avatar-motion-wrapper" id="motionWrapper">
+                <img class="avatar-visual" id="avatarImage"
+                     src="/assets/default_avatar.jpg"
+                     onerror="this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=1200&q=80'"
+                     alt="AI Companion" />
+                <canvas class="avatar-visual" id="avatarCanvas" width="512" height="512" style="display: none;"></canvas>
             </div>
 
-            <!-- 字幕与当前话语 -->
+            <div class="pip-camera" id="pipContainer">
+                <video id="userCam" autoplay playsinline muted></video>
+                <div class="pip-camera-label">
+                    <span id="camLabel">摄像头未开启</span>
+                    <span id="motionTag" style="color: #10b981;"></span>
+                </div>
+            </div>
+
+            <div class="wave-bars" id="waveBars">
+                <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+                <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+                <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+            </div>
+
             <div class="subtitle-box" id="subtitleBox">
-                （点击下方输入框发送消息，或者开启麦克风和我说话~）
+                （点击下方输入框打字，或点 📞 开启免提连麦直接和我语音视频聊天~）
             </div>
         </div>
     </main>
 
     <footer>
         <div class="input-bar">
-            <button class="btn btn-icon" id="toggleCamBtn" title="开关摄像头">📹</button>
+            <button class="btn btn-icon" id="toggleCamBtn" title="开关前置摄像头（双向互看）">📹</button>
+            <button class="btn btn-icon" id="micBtn" title="单次语音输入">🎙️</button>
+            <button class="btn btn-icon" id="handsFreeBtn" title="免提持续连麦模式（自动防回声）">📞</button>
             <input type="text" id="chatInput" placeholder="想和我说点什么？按回车发送..." />
+            <button class="btn btn-danger" id="stopBtn" title="打断当前说话">⏹️ 打断</button>
             <button class="btn btn-primary" id="sendBtn">发送</button>
         </div>
     </footer>
 
-    <!-- 音频播放控件 -->
-    <audio id="audioPlayer" autoplay></audio>
+    <audio id="audioPlayer" crossorigin="anonymous"></audio>
+    <canvas id="captureCanvas" width="640" height="360" style="display: none;"></canvas>
 
     <script>
         const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         const wsUrl = `${wsProtocol}//${window.location.host}/ws/chat`;
-        let ws;
+        let ws = null;
 
+        const aiNameEl = document.getElementById('aiName');
         const aiStatus = document.getElementById('aiStatus');
+        const statusDot = document.getElementById('statusDot');
+        const intimacyBadge = document.getElementById('intimacyBadge');
+        const modeBadge = document.getElementById('modeBadge');
+        const proactiveBtn = document.getElementById('proactiveBtn');
+        const memoryDrawer = document.getElementById('memoryDrawer');
+        const closeDrawerBtn = document.getElementById('closeDrawerBtn');
+        const voiceSelect = document.getElementById('voiceSelect');
+        const avatarUploadInput = document.getElementById('avatarUploadInput');
+        const memoryList = document.getElementById('memoryList');
+        const newFactInput = document.getElementById('newFactInput');
+        const addFactBtn = document.getElementById('addFactBtn');
+        const drawerDriverInfo = document.getElementById('drawerDriverInfo');
         const subtitleBox = document.getElementById('subtitleBox');
         const chatInput = document.getElementById('chatInput');
         const sendBtn = document.getElementById('sendBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const micBtn = document.getElementById('micBtn');
+        const handsFreeBtn = document.getElementById('handsFreeBtn');
         const audioPlayer = document.getElementById('audioPlayer');
         const viewportCard = document.getElementById('viewportCard');
+        const avatarImage = document.getElementById('avatarImage');
+        const avatarCanvas = document.getElementById('avatarCanvas');
+        const avatarCtx = avatarCanvas.getContext('2d');
         const userCam = document.getElementById('userCam');
+        const pipContainer = document.getElementById('pipContainer');
+        const camLabel = document.getElementById('camLabel');
+        const motionTag = document.getElementById('motionTag');
         const toggleCamBtn = document.getElementById('toggleCamBtn');
+        const captureCanvas = document.getElementById('captureCanvas');
+        const captureCtx = captureCanvas.getContext('2d');
+        const waveBarEls = Array.from(document.querySelectorAll('.wave-bar'));
 
-        // 防止浏览器缓存旧头像
-        avatarImage.src = '/assets/default_avatar.jpg?t=' + new Date().getTime();
+        avatarImage.src = '/assets/default_avatar.jpg?t=' + Date.now();
 
         let cameraStream = null;
+        let cameraInterval = null;
+        let prevFrameGray = null;
+        let audioQueue = [];
+        let isPlayingAudio = false;
+        let ttsStreamEnded = true;
+        let envelopeTimer = null;
+        let handsFreeMode = false;
 
-        // 初始化 WebSocket 连接
+        async function syncServerStatus() {
+            try {
+                const res = await fetch('/api/status');
+                const data = await res.json();
+                if (data.ai_name) {
+                    aiNameEl.innerText = data.ai_name;
+                    document.title = `${data.ai_name} - AI 伴侣视频互动终端 v3.1`;
+                }
+                if (data.avatar_mode === 'liveportrait') {
+                    modeBadge.innerText = '🚀 5060 Ti 实时渲染模式';
+                    modeBadge.style.color = '#38bdf8';
+                } else {
+                    modeBadge.innerText = '💻 轻量调试模式 (0显存)';
+                }
+                if (data.driver) {
+                    drawerDriverInfo.innerText = `引擎: ${data.driver.engine} (${data.driver.fps} FPS) | 局域网: ${data.https_enabled ? 'https' : 'http'}://${data.lan_ip}:${window.location.port || 8899}`;
+                }
+                if (data.tts && data.tts.presets) {
+                    const currentId = `${data.tts.provider}:${data.tts.voice}`;
+                    voiceSelect.innerHTML = data.tts.presets.map(p =>
+                        `<option value="${p.id}" ${p.id === currentId ? 'selected' : ''}>${p.label}</option>`
+                    ).join('');
+                }
+                if (data.memory) {
+                    updateMemoryUI(data.memory);
+                }
+            } catch (e) {
+                console.warn('同步状态失败:', e);
+            }
+        }
+
+        voiceSelect.addEventListener('change', async () => {
+            const presetId = voiceSelect.value;
+            await fetch('/api/tts/config', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ preset_id: presetId })
+            });
+        });
+
+        avatarUploadInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = async (ev) => {
+                const b64 = ev.target.result;
+                const res = await fetch('/api/avatar/upload', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ image_base64: b64 })
+                });
+                const data = await res.json();
+                if (data.status === 'ok') {
+                    avatarCanvas.style.display = 'none';
+                    avatarImage.style.display = 'block';
+                    avatarImage.src = '/assets/default_avatar.jpg?t=' + Date.now();
+                }
+            };
+            reader.readAsDataURL(file);
+        });
+
+        function updateMemoryUI(mem) {
+            const intimacy = mem.intimacy ?? 65;
+            const mood = mem.mood ?? '温柔愉悦';
+            const facts = mem.facts || [];
+            intimacyBadge.innerText = `💕 亲密度 ${intimacy} · ${mood} · 记忆 ${facts.length} 条 ⚙️`;
+
+            if (facts.length === 0) {
+                memoryList.innerHTML = `<div style="color:#64748b;font-size:12px;text-align:center;padding:20px 0;">还没有记录下特定偏好，在聊天中告诉她你的名字、喜好或生日吧~</div>`;
+                return;
+            }
+            memoryList.innerHTML = facts.map((item, idx) => `
+                <div class="memory-item">
+                    <div>
+                        <div style="color:#f8fafc;line-height:1.4;">${item.content}</div>
+                        <div class="memory-item-meta">${item.timestamp || ''}</div>
+                    </div>
+                    <button class="del-fact-btn" onclick="deleteFact(${idx})" title="删除这条记忆">✕</button>
+                </div>
+            `).join('');
+        }
+
+        async function deleteFact(idx) {
+            const res = await fetch(`/api/memory/${idx}`, { method: 'DELETE' });
+            const data = await res.json();
+            if (data.memory) updateMemoryUI(data.memory);
+        }
+
+        addFactBtn.addEventListener('click', async () => {
+            const val = newFactInput.value.trim();
+            if (!val) return;
+            const res = await fetch('/api/memory/add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content: val, category: '手动备忘' })
+            });
+            const data = await res.json();
+            newFactInput.value = '';
+            if (data.memory) updateMemoryUI(data.memory);
+        });
+
+        intimacyBadge.addEventListener('click', () => memoryDrawer.classList.toggle('open'));
+        closeDrawerBtn.addEventListener('click', () => memoryDrawer.classList.remove('open'));
+
+        proactiveBtn.addEventListener('click', () => {
+            if (!ws || ws.readyState !== WebSocket.OPEN) return;
+            if (isPlayingAudio) interruptSpeaking();
+            ws.send(JSON.stringify({ type: 'proactive_trigger', idle_seconds: 45 }));
+        });
+
+        function playNextInQueue() {
+            if (audioQueue.length === 0) {
+                isPlayingAudio = false;
+                if (ttsStreamEnded) {
+                    finishSpeakingState();
+                }
+                return;
+            }
+
+            isPlayingAudio = true;
+            if (recognition && isListening) {
+                try { recognition.stop(); } catch (e) {}
+            }
+
+            const item = audioQueue.shift();
+            viewportCard.classList.add('speaking-glow');
+            stopBtn.classList.add('visible');
+            aiStatus.innerText = '说话中';
+
+            startEnvelopeAnimation(item.envelope || [], item.fps || 30);
+
+            if (item.audio_base64) {
+                audioPlayer.src = `data:audio/mp3;base64,${item.audio_base64}`;
+                audioPlayer.onended = () => {
+                    stopEnvelopeAnimation();
+                    playNextInQueue();
+                };
+                audioPlayer.onerror = () => {
+                    stopEnvelopeAnimation();
+                    playNextInQueue();
+                };
+                audioPlayer.play().catch(() => {
+                    speakWithNativeTTS(item.text);
+                });
+            } else if (item.text && 'speechSynthesis' in window) {
+                speakWithNativeTTS(item.text);
+            } else {
+                stopEnvelopeAnimation();
+                playNextInQueue();
+            }
+        }
+
+        function speakWithNativeTTS(text) {
+            if (!('speechSynthesis' in window)) {
+                stopEnvelopeAnimation();
+                playNextInQueue();
+                return;
+            }
+            const utter = new SpeechSynthesisUtterance(text);
+            utter.lang = 'zh-CN';
+            utter.rate = 1.05;
+            utter.onend = () => {
+                stopEnvelopeAnimation();
+                playNextInQueue();
+            };
+            utter.onerror = () => {
+                stopEnvelopeAnimation();
+                playNextInQueue();
+            };
+            window.speechSynthesis.speak(utter);
+        }
+
+        function startEnvelopeAnimation(envelope, fps) {
+            stopEnvelopeAnimation();
+            if (!envelope || envelope.length === 0) return;
+            let idx = 0;
+            const intervalMs = Math.max(20, Math.round(1000 / fps));
+            envelopeTimer = setInterval(() => {
+                if (idx >= envelope.length) {
+                    stopEnvelopeAnimation();
+                    return;
+                }
+                const energy = envelope[idx++];
+                const glowBlur = Math.round(35 + energy * 48);
+                const glowAlpha = (0.3 + energy * 0.42).toFixed(2);
+                viewportCard.style.boxShadow = `inset 0 0 ${glowBlur}px rgba(236, 72, 153, ${glowAlpha}), 0 0 ${Math.round(glowBlur * 0.6)}px rgba(236, 72, 153, ${glowAlpha})`;
+
+                waveBarEls.forEach((bar, bIdx) => {
+                    const waveFactor = Math.abs(Math.sin(idx * 0.45 + bIdx * 0.7));
+                    const h = Math.max(4, Math.round(6 + energy * 22 * waveFactor));
+                    bar.style.height = `${h}px`;
+                });
+            }, intervalMs);
+        }
+
+        function stopEnvelopeAnimation() {
+            if (envelopeTimer) {
+                clearInterval(envelopeTimer);
+                envelopeTimer = null;
+            }
+            viewportCard.style.boxShadow = '';
+            waveBarEls.forEach(bar => bar.style.height = '5px');
+        }
+
+        function finishSpeakingState() {
+            stopEnvelopeAnimation();
+            viewportCard.classList.remove('speaking-glow');
+            stopBtn.classList.remove('visible');
+            aiStatus.innerText = handsFreeMode ? '📞 免提连麦倾听中...' : '在线中';
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ type: 'playback_finished' }));
+            }
+            if (handsFreeMode && recognition && !isListening) {
+                setTimeout(() => {
+                    if (handsFreeMode && !isPlayingAudio && !isListening) {
+                        try { recognition.start(); } catch (e) {}
+                    }
+                }, 250);
+            }
+        }
+
+        function interruptSpeaking() {
+            audioQueue = [];
+            isPlayingAudio = false;
+            ttsStreamEnded = true;
+            audioPlayer.pause();
+            audioPlayer.currentTime = 0;
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+            }
+            stopEnvelopeAnimation();
+            viewportCard.classList.remove('speaking-glow');
+            stopBtn.classList.remove('visible');
+            aiStatus.innerText = handsFreeMode ? '📞 免提连麦倾听中...' : '在线中';
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ type: 'interrupt' }));
+            }
+        }
+
         function connectWebSocket() {
             ws = new WebSocket(wsUrl);
 
             ws.onopen = () => {
                 aiStatus.innerText = '在线中';
                 aiStatus.style.color = '#10b981';
+                statusDot.style.backgroundColor = '#10b981';
+                syncServerStatus();
             };
 
             ws.onmessage = (event) => {
@@ -333,91 +869,229 @@
 
                 if (msg.type === 'state') {
                     if (msg.data === 'thinking') {
-                        aiStatus.innerText = '正在思考...';
-                        subtitleBox.innerText = '正在想怎么回复你...';
+                        aiStatus.innerText = msg.vision_active ? '👀 看着你思考中...' : '正在思考...';
+                        subtitleBox.innerText = msg.proactive ? '（她正看着你准备开口...）' : '正在想怎么回复你...';
+                        stopBtn.classList.add('visible');
+                        ttsStreamEnded = false;
                     } else if (msg.data === 'speaking') {
                         aiStatus.innerText = '说话中';
                         viewportCard.classList.add('speaking-glow');
+                        stopBtn.classList.add('visible');
                     } else if (msg.data === 'idle') {
-                        aiStatus.innerText = '在线中';
-                        viewportCard.classList.remove('speaking-glow');
+                        if (!isPlayingAudio && audioQueue.length === 0) {
+                            aiStatus.innerText = handsFreeMode ? '📞 免提连麦倾听中...' : '在线中';
+                            viewportCard.classList.remove('speaking-glow');
+                            stopBtn.classList.remove('visible');
+                        }
                     }
                 } else if (msg.type === 'text_delta') {
-                    // 流式增量字幕
-                    if (subtitleBox.innerText === '正在想怎么回复你...') {
+                    if (subtitleBox.innerText.startsWith('正在想') || subtitleBox.innerText.startsWith('（她正看着你')) {
                         subtitleBox.innerText = '';
                     }
                     subtitleBox.innerText += msg.delta;
                 } else if (msg.type === 'audio') {
-                    // 播放返回的声音
-                    const audioBase64 = msg.audio_base64;
-                    if (audioBase64) {
-                        audioPlayer.src = `data:audio/mp3;base64,${audioBase64}`;
-                        audioPlayer.play().catch(e => console.log('自动播放需要用户交互:', e));
-                    } else if (msg.text && 'speechSynthesis' in window) {
-                        // 优雅降级：浏览器原生语音朗读（0延迟、无网络依赖）
-                        const utter = new SpeechSynthesisUtterance(msg.text);
-                        utter.lang = 'zh-CN';
-                        utter.rate = 1.05;
-                        window.speechSynthesis.speak(utter);
+                    audioQueue.push(msg);
+                    if (!isPlayingAudio) {
+                        playNextInQueue();
                     }
+                } else if (msg.type === 'tts_stream_end') {
+                    ttsStreamEnded = true;
+                    if (msg.memory) {
+                        updateMemoryUI(msg.memory);
+                    }
+                    if (!isPlayingAudio && audioQueue.length === 0) {
+                        finishSpeakingState();
+                    }
+                } else if (msg.type === 'video_frame' && msg.frame_base64) {
+                    const img = new Image();
+                    img.onload = () => {
+                        avatarImage.style.display = 'none';
+                        avatarCanvas.style.display = 'block';
+                        avatarCtx.drawImage(img, 0, 0, avatarCanvas.width, avatarCanvas.height);
+                    };
+                    img.src = `data:image/jpeg;base64,${msg.frame_base64}`;
                 }
             };
 
             ws.onclose = () => {
                 aiStatus.innerText = '已离线 (重连中...)';
                 aiStatus.style.color = '#ef4444';
+                statusDot.style.backgroundColor = '#ef4444';
                 setTimeout(connectWebSocket, 3000);
             };
         }
 
-        // 发送消息
-        function sendMessage() {
-            const text = chatInput.value.trim();
+        function sendMessage(customText) {
+            const text = (typeof customText === 'string' ? customText : chatInput.value).trim();
             if (!text || !ws || ws.readyState !== WebSocket.OPEN) return;
+
+            if (isPlayingAudio || audioQueue.length > 0) {
+                interruptSpeaking();
+            }
 
             subtitleBox.innerText = `你：${text}`;
             ws.send(JSON.stringify({
                 type: 'user_message',
                 text: text
             }));
-            chatInput.value = '';
+            if (typeof customText !== 'string') {
+                chatInput.value = '';
+            }
         }
 
-        sendBtn.addEventListener('click', sendMessage);
+        sendBtn.addEventListener('click', () => sendMessage());
+        stopBtn.addEventListener('click', interruptSpeaking);
         chatInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') sendMessage();
         });
 
-        // 摄像头开关
+        function captureAndSendCameraFrame() {
+            if (!cameraStream || !ws || ws.readyState !== WebSocket.OPEN) return;
+            if (userCam.readyState < 2) return;
+            captureCtx.drawImage(userCam, 0, 0, captureCanvas.width, captureCanvas.height);
+
+            const imgData = captureCtx.getImageData(0, 0, captureCanvas.width, captureCanvas.height).data;
+            let diffSum = 0;
+            const step = 64;
+            const currGray = [];
+            for (let i = 0; i < imgData.length; i += step) {
+                const g = (imgData[i] + imgData[i + 1] + imgData[i + 2]) / 3;
+                currGray.push(g);
+                if (prevFrameGray && prevFrameGray.length === currGray.length) {
+                    diffSum += Math.abs(g - prevFrameGray[currGray.length - 1]);
+                }
+            }
+            const motionScore = prevFrameGray ? +(diffSum / currGray.length).toFixed(1) : 10.0;
+            prevFrameGray = currGray;
+            motionTag.innerText = motionScore > 4.0 ? '动态感知' : '画面稳定';
+
+            const dataUrl = captureCanvas.toDataURL('image/jpeg', 0.65);
+            ws.send(JSON.stringify({
+                type: 'camera_frame',
+                motion_score: motionScore,
+                image_base64: dataUrl
+            }));
+        }
+
         toggleCamBtn.addEventListener('click', async () => {
             if (cameraStream) {
+                if (cameraInterval) clearInterval(cameraInterval);
+                cameraInterval = null;
+                prevFrameGray = null;
                 cameraStream.getTracks().forEach(track => track.stop());
                 userCam.srcObject = null;
                 cameraStream = null;
                 toggleCamBtn.classList.remove('active');
+                pipContainer.classList.remove('cam-active');
+                camLabel.innerText = '摄像头未开启';
+                motionTag.innerText = '';
             } else {
                 try {
                     cameraStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
                     userCam.srcObject = cameraStream;
                     toggleCamBtn.classList.add('active');
+                    pipContainer.classList.add('cam-active');
+                    camLabel.innerText = '👀 双向注视中';
+                    setTimeout(captureAndSendCameraFrame, 500);
+                    cameraInterval = setInterval(captureAndSendCameraFrame, 2500);
                 } catch (err) {
-                    alert('无法访问摄像头: ' + err.message);
+                    alert('无法访问摄像头（若在手机局域网访问，请先在电脑运行 python scripts/generate_cert.py 开启 HTTPS）: ' + err.message);
                 }
+            }
+        });
+
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        let recognition = null;
+        let isListening = false;
+
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.lang = 'zh-CN';
+            recognition.continuous = false;
+            recognition.interimResults = true;
+
+            recognition.onstart = () => {
+                isListening = true;
+                micBtn.classList.add('active');
+                chatInput.placeholder = handsFreeMode ? '📞 免提连麦倾听中，请直接说话...' : '正在听你说话...';
+            };
+
+            recognition.onresult = (event) => {
+                let transcript = '';
+                let isFinal = false;
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    transcript += event.results[i][0].transcript;
+                    if (event.results[i].isFinal) isFinal = true;
+                }
+                chatInput.value = transcript;
+                if (isFinal && transcript.trim()) {
+                    sendMessage(transcript.trim());
+                    chatInput.value = '';
+                }
+            };
+
+            recognition.onerror = () => {
+                isListening = false;
+                micBtn.classList.remove('active');
+            };
+
+            recognition.onend = () => {
+                isListening = false;
+                micBtn.classList.remove('active');
+                chatInput.placeholder = '想和我说点什么？按回车发送...';
+                if (handsFreeMode && !isPlayingAudio) {
+                    setTimeout(() => {
+                        if (handsFreeMode && !isPlayingAudio && !isListening) {
+                            try { recognition.start(); } catch (e) {}
+                        }
+                    }, 300);
+                }
+            };
+        }
+
+        micBtn.addEventListener('click', () => {
+            if (!recognition) {
+                alert('当前浏览器不支持原生 Web Speech 语音识别，建议使用 Chrome 或 Edge 浏览器。');
+                return;
+            }
+            if (isListening) {
+                handsFreeMode = false;
+                handsFreeBtn.classList.remove('active');
+                recognition.stop();
+            } else {
+                if (isPlayingAudio) interruptSpeaking();
+                recognition.start();
+            }
+        });
+
+        handsFreeBtn.addEventListener('click', () => {
+            if (!recognition) {
+                alert('当前浏览器不支持原生 Web Speech 语音识别，建议使用 Chrome 或 Edge 浏览器。');
+                return;
+            }
+            handsFreeMode = !handsFreeMode;
+            handsFreeBtn.classList.toggle('active', handsFreeMode);
+            if (handsFreeMode) {
+                aiStatus.innerText = '📞 免提连麦倾听中...';
+                if (!isPlayingAudio && !isListening) {
+                    try { recognition.start(); } catch (e) {}
+                }
+            } else {
+                aiStatus.innerText = '在线中';
+                if (isListening) recognition.stop();
             }
         });
 
         connectWebSocket();
 
-        // 视线与微表情跟随：鼠标移动时产生微小的视线与头部倾斜
-        let isSpeaking = false;
         window.addEventListener('mousemove', (e) => {
-            if (viewportCard.classList.contains('speaking-glow')) return;
             const cx = window.innerWidth / 2;
             const cy = window.innerHeight / 2;
             const dx = (e.clientX - cx) / cx;
             const dy = (e.clientY - cy) / cy;
-            avatarImage.style.transform = `scale(1.02) translate(${dx * 8}px, ${dy * 8}px) rotateY(${dx * 3}deg) rotateX(${-dy * 3}deg)`;
+            const transformStr = `scale(1.02) translate(${dx * 8}px, ${dy * 8}px) rotateY(${dx * 3.5}deg) rotateX(${-dy * 3.5}deg)`;
+            avatarImage.style.transform = transformStr;
+            avatarCanvas.style.transform = transformStr;
         });
     </script>
 </body>
